@@ -3,10 +3,8 @@ import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import MainMenu from "./components/MainMenu";
 import { Login } from "./screens/Login";
 import MainScreen from "./screens/MainScreen";
-import { Questionnaires } from "./screens/Questionnaires";
 
 type authType = {
   pin: string | null;
