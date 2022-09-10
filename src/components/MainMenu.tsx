@@ -7,6 +7,7 @@ interface MainMenuProps {
   isActive: boolean;
   onClosePress: () => void;
   onChangeApplier: () => void;
+  onListQuestionnaires: () => void;
   applier: string;
 }
 
@@ -45,6 +46,11 @@ const MainMenu = (props: MainMenuProps) => {
         <View style={styles.mainMenuContent}>
           <Button textValue="Sincronizar (15)" />
           <Button
+            textValue="Listar questionários"
+            isPrimary={false}
+            onPress={() => props.onListQuestionnaires()}
+          />
+          <Button
             textValue="Trocar de entrevistador"
             isPrimary={false}
             onPress={() => props.onChangeApplier()}
@@ -66,8 +72,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     maxWidth: 300,
     width: "100%",
-    borderTopRightRadius: 10,
-    borderBottomRightRadius: 10,
     overflow: "hidden",
   },
   mainMenuBackground: {

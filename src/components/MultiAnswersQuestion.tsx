@@ -10,6 +10,7 @@ interface MultiAnswersQuestionProps {
       title: string;
     }[];
   };
+  onAnswer: (answers: string[]) => void;
 }
 
 const MultiAnswersQuestion = (props: MultiAnswersQuestionProps) => {
@@ -19,8 +20,11 @@ const MultiAnswersQuestion = (props: MultiAnswersQuestionProps) => {
     return !!checkeds.find((e) => e === id);
   };
   const handleCheck = (id: string) => {
-    if (isChecked(id)) return setCheckeds(checkeds.filter((e) => e !== id));
-    setCheckeds([...checkeds, id]);
+    let newValueList = [];
+    if (isChecked(id)) newValueList = checkeds.filter((e) => e !== id);
+    else newValueList = [...checkeds, id];
+    setCheckeds(newValueList);
+    props.onAnswer(newValueList);
   };
   return (
     <>

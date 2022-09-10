@@ -10,6 +10,7 @@ interface OneAnswerQuestionProps {
       title: string;
     }[];
   };
+  onAnswer: (answer: string) => void;
 }
 
 const OneAnswerQuestion = (props: OneAnswerQuestionProps) => {
@@ -20,6 +21,7 @@ const OneAnswerQuestion = (props: OneAnswerQuestionProps) => {
   };
   const handleCheck = (id: string) => {
     setChecked(id);
+    props.onAnswer(id);
   };
   return (
     <>

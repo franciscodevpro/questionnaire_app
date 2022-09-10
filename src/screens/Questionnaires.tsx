@@ -2,7 +2,9 @@ import React from "react";
 import { ScrollView, ViewProps } from "react-native";
 import ListItem from "../components/ListItem";
 
-type QuestionnairesProps = ViewProps;
+type QuestionnairesProps = ViewProps & {
+  answerQuestionnaire: (id: string) => void;
+};
 
 export const Questionnaires = (props: QuestionnairesProps) => {
   return (
@@ -12,6 +14,7 @@ export const Questionnaires = (props: QuestionnairesProps) => {
           key={key}
           title="Eleições para senador"
           subTitle="3 pendentes de sincronização"
+          onPress={() => props.answerQuestionnaire(key + "125")}
         />
       ))}
     </ScrollView>

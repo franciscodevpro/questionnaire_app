@@ -5,6 +5,7 @@ import Icon from "react-native-vector-icons/Feather";
 interface ListItemProps {
   title: string;
   subTitle?: string;
+  onPress: () => void;
 }
 
 const ListItem = (props: ListItemProps) => {
@@ -14,7 +15,10 @@ const ListItem = (props: ListItemProps) => {
         <Text style={styles.listItemInfoTitle}>{props.title}</Text>
         <Text>{props.subTitle && props.subTitle}</Text>
       </View>
-      <TouchableOpacity style={styles.listItemButton}>
+      <TouchableOpacity
+        style={styles.listItemButton}
+        onPress={() => props.onPress()}
+      >
         <Icon name="chevron-right" size={40} color="#fff" />
       </TouchableOpacity>
     </View>
