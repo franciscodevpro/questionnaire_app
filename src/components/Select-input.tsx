@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, { useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -10,17 +10,17 @@ import {
 import Icon from "react-native-vector-icons/Feather";
 
 interface SelectInputProps {
-  onSelect: (value: string) => void;
+  onSelect: (data: { value: string; key: string }) => void;
   data: { value: string; key: string }[];
 }
 
 export const SelectInput = (props: SelectInputProps) => {
-  const [selected, setSelected] = React.useState("");
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [selected, setSelected] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
 
-  const handleSelect = (value: string) => {
-    setSelected(value);
-    props.onSelect(value);
+  const handleSelect = ({ value, key }: { value: string; key: string }) => {
+    setSelected(key);
+    props.onSelect({ value, key });
     setIsOpen(false);
   };
 
@@ -51,7 +51,7 @@ export const SelectInput = (props: SelectInputProps) => {
               <TouchableOpacity
                 key={key}
                 style={styles.dropdownOptionsItem}
-                onPress={() => handleSelect(elm.value)}
+                onPress={() => handleSelect(elm)}
               >
                 <Text>{elm.key}</Text>
               </TouchableOpacity>

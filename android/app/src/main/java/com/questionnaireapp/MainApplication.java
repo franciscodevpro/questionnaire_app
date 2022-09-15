@@ -20,6 +20,8 @@ import expo.modules.ReactNativeHostWrapper;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
+import com.reactnativecommunity.geolocation.GeolocationPackage;
+
 public class MainApplication extends Application implements ReactApplication {
   private final ReactNativeHost mReactNativeHost = new ReactNativeHostWrapper(
     this,
@@ -43,6 +45,14 @@ public class MainApplication extends Application implements ReactApplication {
       return "index";
     }
   });
+
+  @Override
+  protected List<ReactPackage> getPackages() {
+      return Arrays.asList(
+              new MainReactPackage(),
+              new GeolocationPackage()
+      );
+  }
 
   private final ReactNativeHost mNewArchitectureNativeHost =
       new ReactNativeHostWrapper(this, new MainApplicationReactNativeHost(this));

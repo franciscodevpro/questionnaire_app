@@ -1,20 +1,29 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { ScrollView, ViewProps } from "react-native";
 import ListItem from "../components/ListItem";
+import MainContext from "../contexts/MainContext";
 
 type QuestionnairesProps = ViewProps & {
   answerQuestionnaire: (id: string) => void;
 };
 
 export const Questionnaires = (props: QuestionnairesProps) => {
+  const { questionnaires, questionnaireUnsaved } = useContext(MainContext);
   return (
     <ScrollView {...props}>
-      {Array.from({ length: 10 }).map((item, key) => (
+      {questionnaires.map((item, key) => (
         <ListItem
-          key={key}
-          title="Eleições para senador"
-          subTitle="3 pendentes de sincronização"
-          onPress={() => props.answerQuestionnaire(key + "125")}
+          key={item.id}
+          title={item.name}
+          subTitle={
+            questionnaireUnsaved[item.id]
+              ? questionnaireUnsaved[item.id] +
+                " pendente" +
+                (questionnaireUnsaved[item.id] > 1 ? "s" : "") +
+                " de sincronização"
+              : "Nenhuma entrevista pendente"
+          }
+          onPress={() => props.answerQuestionnaire(item.id)}
         />
       ))}
     </ScrollView>

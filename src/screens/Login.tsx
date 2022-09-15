@@ -1,17 +1,31 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Image, StyleSheet, View } from "react-native";
 import Button from "../components/Button";
 import Input from "../components/InputLabel";
 import { SelectInput } from "../components/Select-input";
+import { getAppliers } from "../repositories/appliers";
 
 type LoginProps = {
-  onLogin: (authData: { pin: string; applier: string }) => void;
+  onLogin: (authData: {
+    pin: string;
+    applier: { id: string; name: string };
+  }) => void;
 };
 
 export const Login = (props: LoginProps) => {
   const [disabled, setDisabled] = useState(true);
   const [pin, setPin] = useState<string | null>(null);
-  const [applier, setApplier] = useState<string | null>(null);
+  const [applier, setApplier] = useState<{ name: string; id: string }>(null);
+  const [data, setData] = useState<{ key: string; value: string }[]>(null);
+
+  useEffect(() => {
+    fetchAppliers();
+  }, []);
+
+  const fetchAppliers = async () => {
+    const resultData = await getAppliers();
+    setData(resultData.map((e) => ({ key: e.name, value: e.id })));
+  };
 
   const handlePinChange = (value: string) => {
     setPin(value);
@@ -19,8 +33,14 @@ export const Login = (props: LoginProps) => {
     setDisabled(true);
   };
 
-  const handleApplierChange = (value: string) => {
-    setApplier(value);
+  const handleApplierChange = ({
+    key,
+    value,
+  }: {
+    key: string;
+    value: string;
+  }) => {
+    setApplier({ name: key, id: value });
     if (!!value && !!pin) return setDisabled(false);
     setDisabled(true);
   };
@@ -29,12 +49,6 @@ export const Login = (props: LoginProps) => {
     props.onLogin({ pin, applier });
   };
 
-  const data = [
-    { value: "Carlos", key: "Carlos" },
-    { value: "Daniel", key: "Daniel" },
-    { value: "Adriana", key: "Adriana" },
-  ];
-
   return (
     <View style={styles.container}>
       <Image source={require("../../assets/logo02.png")} />
@@ -42,7 +56,7 @@ export const Login = (props: LoginProps) => {
         <Input labelText="Pin" onChangeText={handlePinChange} />
         <Input
           labelText="Entrevistador"
-          onChangeText={handleApplierChange}
+          onChangeText={() => {}}
           inputElement={
             <SelectInput onSelect={handleApplierChange} data={data} />
           }

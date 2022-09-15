@@ -1,4 +1,6 @@
-import React, { Component, ReactComponentElement, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
+import * as Location from "expo-location";
+import { Audio } from "expo-av";
 import {
   Text,
   View,
@@ -6,129 +8,116 @@ import {
   ViewProps,
   TouchableOpacity,
   ScrollView,
+  Platform,
+  Alert,
 } from "react-native";
 import Icon from "react-native-vector-icons/Feather";
 import MultiAnswersQuestion from "../components/MultiAnswersQuestion";
 import OneAnswerQuestion from "../components/OneAnswerQuestion";
 import SubjectiveAnswerQuestion from "../components/SubjectiveAnswerQuestion";
-
-type Question = {
-  id: string;
-  title: string;
-  type: string;
-  minAnswers: number;
-  maxAnswers: number;
-  defaultValue: string;
-  shuffle: true;
-  prioritizeBySelection: true;
-  answerOptions: {
-    id: string;
-    title: string;
-    status: true;
-  }[];
-};
+import AuthContext from "../contexts/AuthContext";
+import { QuestionEntity } from "../entities/question.type";
+import { getQuestions } from "../repositories/questions";
+import { AnswerEntity } from "../entities/answer.type";
+import { saveLocalAnswers } from "../repositories/answers";
+import MainContext from "../contexts/MainContext";
 
 interface QuestionsProps extends ViewProps {
+  idQuestionnaire: string;
   onQuestionnaireEnd: () => void;
 }
 
 const Questions = (props: QuestionsProps) => {
-  const [questions, setQuestions] = useState<Question[]>([
-    {
-      id: "01",
-      title: "A qual gênero sexual você se considera fazer parte?",
-      type: "1",
-      minAnswers: null,
-      maxAnswers: null,
-      defaultValue: null,
-      shuffle: true,
-      prioritizeBySelection: true,
-      answerOptions: [
-        {
-          id: "123594",
-          title: "Masculino",
-          status: true,
-        },
-        {
-          id: "123595",
-          title: "Feminino",
-          status: true,
-        },
-        {
-          id: "123596",
-          title: "Outro",
-          status: true,
-        },
-      ],
-    },
-    {
-      id: "02",
-      title:
-        "Se as eleições fossem hoje, em qual desses vocÇe votaria para senador?",
-      type: "2",
-      minAnswers: 1,
-      maxAnswers: 3,
-      defaultValue: null,
-      shuffle: true,
-      prioritizeBySelection: true,
-      answerOptions: [
-        {
-          id: "123584",
-          title: "João Gilberto",
-          status: true,
-        },
-        {
-          id: "123585",
-          title: "Pedro Manse",
-          status: true,
-        },
-        {
-          id: "123586",
-          title: "Tomás de Aquino",
-          status: true,
-        },
-        {
-          id: "353584",
-          title: "Hugo de Sá",
-          status: true,
-        },
-        {
-          id: "353585",
-          title: "Pedro Maranão",
-          status: true,
-        },
-        {
-          id: "353586",
-          title: "Elias de Deus",
-          status: true,
-        },
-      ],
-    },
-    {
-      id: "02",
-      title:
-        "Queis melhorias você teria como proposta que, na sua opinião, tornariam melhores as vidas dos cidadãos Florianenses?",
-      type: "3",
-      minAnswers: null,
-      maxAnswers: null,
-      defaultValue: null,
-      shuffle: true,
-      prioritizeBySelection: true,
-      answerOptions: null,
-    },
-  ]);
+  const { applier, pin, logOut } = useContext(AuthContext);
+  const { updateAnswers } = useContext(MainContext);
+  const [questions, setQuestions] = useState<QuestionEntity[]>([]);
   const [answers, setAnswers] = useState<{
-    [key: string]: {
-      idQuestion: string;
-      idAnswerOption?: string;
-      idAnswerOptions?: string[];
-      value?: string;
-      duration?: number;
-      createdAt?: string;
-    };
+    [key: string]: AnswerEntity;
   }>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [canNext, setCanNext] = useState(false);
+  const [coordinates, setCoordinates] = useState<[string, string]>([
+    null,
+    null,
+  ]);
+  const [audioPath, setAudioPath] = useState("");
+
+  useEffect(() => {
+    fetchQuestions();
+    startRecording();
+  }, []);
+  useEffect(() => {
+    getCurrentPosition();
+  }, [coordinates]);
+
+  const startRecording = async () => {
+    try {
+      console.log("Requesting permissions..");
+      await Audio.requestPermissionsAsync();
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+      console.log("Starting recording..");
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+      console.log("Recording started");
+      setTimeout(function () {
+        Alert.alert("Parando gravação.");
+        stopRecording(recording);
+      }, 5000);
+    } catch (err) {
+      console.error("Failed to start recording", err);
+    }
+  };
+
+  const stopRecording = async (recordingObj: Audio.Recording) => {
+    await recordingObj.stopAndUnloadAsync();
+    //const { sound } = await recordingObj.createNewLoadedSoundAsync();
+    setAudioPath(recordingObj._uri);
+  };
+
+  const getLocation = async () => {
+    const position = await Location.getCurrentPositionAsync({ accuracy: 3 });
+    const newCoordinates: [string, string] = [
+      JSON.stringify(position.coords.latitude),
+      JSON.stringify(position.coords.longitude),
+    ];
+    if (
+      newCoordinates[0] !== coordinates[0] ||
+      newCoordinates[1] !== coordinates[1]
+    )
+      setCoordinates(newCoordinates);
+    console.log(coordinates);
+  };
+  const getCurrentPosition = async (): Promise<void> => {
+    if (Platform.OS === "ios") {
+      await getLocation();
+    } else {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      console.log(status);
+      if (status === "granted") {
+        await getLocation();
+      } else {
+        alert("Permissão de localização negada");
+      }
+    }
+  };
+
+  const fetchQuestions = async () => {
+    const resultData = await getQuestions(
+      { idQuestionnaire: props.idQuestionnaire },
+      {
+        applierId: applier.id,
+        pin,
+        unauthorizad: () => {
+          logOut();
+        },
+      }
+    );
+    setQuestions(resultData);
+  };
 
   const handlePreviousQuestion = () => {
     if (currentQuestion >= 1) setCurrentQuestion(currentQuestion - 1);
@@ -138,12 +127,29 @@ const Questions = (props: QuestionsProps) => {
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
       setCanNext(false);
-    } else props.onQuestionnaireEnd();
+    } else finishQuestionnaire();
   };
 
-  const returnCorrectQuestion = (question: Question) => {
+  const finishQuestionnaire = async () => {
+    await saveLocalAnswers(
+      {
+        idQuestionnaire: props.idQuestionnaire,
+        audioPath: audioPath,
+        lat: coordinates[0],
+        lon: coordinates[1],
+        duration: 0,
+        pin,
+        applierId: applier.id,
+      },
+      Object.values(answers)
+    );
+    await updateAnswers();
+    props.onQuestionnaireEnd();
+  };
+
+  const returnCorrectQuestion = (question: QuestionEntity) => {
     const { id, type } = question;
-    if (type === "1")
+    if (question && type === "1")
       return (
         <OneAnswerQuestion
           question={question}
@@ -157,7 +163,7 @@ const Questions = (props: QuestionsProps) => {
           }}
         />
       );
-    if (type === "2")
+    if (question && type === "2")
       return (
         <MultiAnswersQuestion
           question={question}
@@ -177,7 +183,7 @@ const Questions = (props: QuestionsProps) => {
           }}
         />
       );
-    else
+    else if (question)
       return (
         <SubjectiveAnswerQuestion
           question={question}
@@ -196,7 +202,7 @@ const Questions = (props: QuestionsProps) => {
   return (
     <View {...props}>
       <ScrollView style={styles.content}>
-        {!!questions &&
+        {!!questions.length &&
           (!!currentQuestion || currentQuestion === 0) &&
           returnCorrectQuestion(questions[currentQuestion])}
       </ScrollView>

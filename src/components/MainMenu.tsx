@@ -1,6 +1,7 @@
-import * as React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
 import Icon from "react-native-vector-icons/Feather";
+import MainContext from "../contexts/MainContext";
 import Button from "./Button";
 
 interface MainMenuProps {
@@ -12,6 +13,7 @@ interface MainMenuProps {
 }
 
 const MainMenu = (props: MainMenuProps) => {
+  const { allUnsaved, updateAnswers, syncData } = useContext(MainContext);
   return (
     <>
       <View
@@ -44,7 +46,11 @@ const MainMenu = (props: MainMenuProps) => {
           </TouchableOpacity>
         </View>
         <View style={styles.mainMenuContent}>
-          <Button textValue="Sincronizar (15)" />
+          <Button
+            textValue={`Sincronizar (${allUnsaved})`}
+            disabled={!allUnsaved}
+            onPress={async () => await syncData()}
+          />
           <Button
             textValue="Listar questionários"
             isPrimary={false}
