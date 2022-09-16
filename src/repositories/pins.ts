@@ -15,12 +15,7 @@ export const getLocalDevices = async (): Promise<DeviceEntity[]> => {
 
 export const getDevices = async (): Promise<DeviceEntity[]> => {
   const result = await api.get("/devices");
-  if (!result?.data?.[0]) {
-    const localResult = await getLocalDevices();
-    console.log({ localResult });
-    return localResult;
-  }
-  console.log({ data: result.data });
+  if (!result?.data?.[0]) return await getLocalDevices();
 
   await saveLocalDevices(result.data);
   return result?.data || [];

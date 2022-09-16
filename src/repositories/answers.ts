@@ -73,16 +73,14 @@ export const removeLocalAnswersByRegId = async (
 export const removeAllLocalAnswers = async (
   applierId: string
 ): Promise<void> => {
-  console.log("Removendo dados...");
   await AsyncStorage.removeItem(`@questionnaire:answers:${applierId}`);
-  console.log("Dados removidos!");
 };
 
 export const saveAnswers = async (
   {
     idQuestionnaireData = "",
     idQuestion = "",
-    idAnswerOption = "",
+    idAnswerOption,
     value = "",
     duration = 0,
     createdAt = "",
@@ -105,10 +103,12 @@ export const saveAnswers = async (
     { applierId, pin },
     () => unauthorizad()
   );
-  if (!result?.data?.id)
+  if (!result?.data?.id) {
     Alert.alert(
-      "Erro ao tentar syncrinizar",
+      "Erro ao tentar syncronizar",
       "Confira sua conexão com a internet e tente novamente"
     );
-  return result?.data || {};
+    return {} as any;
+  }
+  return result?.data;
 };

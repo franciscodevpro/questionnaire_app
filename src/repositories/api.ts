@@ -41,6 +41,8 @@ export default {
     try {
       return await axiosClient.post(url, data, basicAuthorization(basicAuth));
     } catch (err) {
+      console.log({ requestData: data, url });
+      console.log(err.message);
       if (/.+401$/i.test(err.message)) {
         unauthorized?.();
         return null;

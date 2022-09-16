@@ -91,9 +91,7 @@ export const getLocalQuestionnairesById = async (
 export const removeAllLocalQuestionnaires = async (
   applierId: string
 ): Promise<void> => {
-  console.log("Removendo dados...");
   await AsyncStorage.removeItem(`@questionnaire:questions:${applierId}`);
-  console.log("Dados removidos!");
 };
 
 export const getQuestionnaires = async ({
@@ -110,7 +108,6 @@ export const getQuestionnaires = async ({
   );
   if (!result?.data?.[0]) {
     const localResult = await getLocalQuestionnaires(applierId);
-    console.log({ localResult });
     return localResult.map((elm) => elm.questionnaire);
   }
 

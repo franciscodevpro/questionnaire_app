@@ -5,6 +5,7 @@ import {
   saveAnswers,
 } from "./answers";
 import api from "./api";
+import { healthCheck } from "./healthcheck";
 import { saveQuestionnaireData } from "./questionnaire-data";
 
 export const synchronizeData = async (applierId: string) => {
@@ -12,6 +13,14 @@ export const synchronizeData = async (applierId: string) => {
     "Sincronização de dados",
     "Iniciando incronização de dados. Por favor: aguarde até que a sincronização esteja completa..."
   );
+  const serverHealth = await healthCheck();
+  if (!serverHealth) {
+    Alert.alert(
+      "Falha ao tentar sincronizar dados",
+      "Não foi possível acessar o servidor. Verifique a conexão com a internet!"
+    );
+    return;
+  }
   const allAnswers = await getLocalAnswers(applierId);
   if (!allAnswers || !allAnswers[0]) return;
   for (let answer of allAnswers) {
@@ -25,6 +34,7 @@ export const synchronizeData = async (applierId: string) => {
       applierId: answer.questionnaireData.applierId,
       pin: answer.questionnaireData.pin,
     });
+    console.log({ id });
     if (!id) return;
     for (let elm of answer.answers) {
       const {

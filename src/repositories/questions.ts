@@ -22,9 +22,15 @@ export const getQuestions = async (
       unauthorizad,
     }
   );
-  if (!questions || !questions[0])
-    return (await getLocalQuestionnairesById(applierId, idQuestionnaire))
-      .questions;
+  if (!questions || !questions[0]) {
+    const localResult = await getLocalQuestionnairesById(
+      applierId,
+      idQuestionnaire
+    );
+    return localResult.questions;
+  }
+
+  return questions;
 };
 
 export const getRemoteQuestions = async (

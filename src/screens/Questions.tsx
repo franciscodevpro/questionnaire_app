@@ -52,17 +52,14 @@ const Questions = (props: QuestionsProps) => {
 
   const startRecording = async () => {
     try {
-      console.log("Requesting permissions..");
       await Audio.requestPermissionsAsync();
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
       });
-      console.log("Starting recording..");
       const { recording } = await Audio.Recording.createAsync(
         Audio.RecordingOptionsPresets.HIGH_QUALITY
       );
-      console.log("Recording started");
       setTimeout(function () {
         Alert.alert("Parando gravação.");
         stopRecording(recording);
@@ -89,14 +86,12 @@ const Questions = (props: QuestionsProps) => {
       newCoordinates[1] !== coordinates[1]
     )
       setCoordinates(newCoordinates);
-    console.log(coordinates);
   };
   const getCurrentPosition = async (): Promise<void> => {
     if (Platform.OS === "ios") {
       await getLocation();
     } else {
       let { status } = await Location.requestForegroundPermissionsAsync();
-      console.log(status);
       if (status === "granted") {
         await getLocation();
       } else {
@@ -124,7 +119,7 @@ const Questions = (props: QuestionsProps) => {
   };
 
   const handleNextQuestion = () => {
-    if (currentQuestion < questions.length - 1) {
+    if (currentQuestion < (questions?.length - 1 || 0)) {
       setCurrentQuestion(currentQuestion + 1);
       setCanNext(false);
     } else finishQuestionnaire();
@@ -147,7 +142,7 @@ const Questions = (props: QuestionsProps) => {
     props.onQuestionnaireEnd();
   };
 
-  const returnCorrectQuestion = (question: QuestionEntity) => {
+  const returnCorrectQuestionType = (question: QuestionEntity) => {
     const { id, type } = question;
     if (question && type === "1")
       return (
@@ -202,9 +197,9 @@ const Questions = (props: QuestionsProps) => {
   return (
     <View {...props}>
       <ScrollView style={styles.content}>
-        {!!questions.length &&
+        {!!questions?.length &&
           (!!currentQuestion || currentQuestion === 0) &&
-          returnCorrectQuestion(questions[currentQuestion])}
+          returnCorrectQuestionType(questions[currentQuestion])}
       </ScrollView>
       <View style={styles.footer}>
         <TouchableOpacity
@@ -218,7 +213,7 @@ const Questions = (props: QuestionsProps) => {
           <Icon name="arrow-left" size={32} />
         </TouchableOpacity>
         <Text style={styles.questionMarker}>
-          {currentQuestion + 1} / {questions.length}
+          {currentQuestion + 1} / {questions?.length || 0}
         </Text>
         <TouchableOpacity
           style={{

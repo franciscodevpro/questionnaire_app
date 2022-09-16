@@ -38,7 +38,6 @@ const MainScreen = (props: MainScreenProps) => {
   }, []);
 
   const updateAnswers = async (): Promise<void> => {
-    console.log("Entrou aqui");
     const answers = await getLocalAnswers(applier.id);
     let unsyncData = {};
     answers.forEach((elm) => {

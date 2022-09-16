@@ -22,7 +22,7 @@ export const saveQuestionnaireData = async (
   );
   if (!result?.data?.id)
     Alert.alert(
-      "Erro ao tentar syncrinizar",
+      "Erro ao tentar syncronizar",
       "Confira sua conexão com a internet e tente novamente"
     );
   return result?.data || {};
