@@ -25,6 +25,7 @@ export const synchronizeData = async (applierId: string) => {
       applierId: answer.questionnaireData.applierId,
       pin: answer.questionnaireData.pin,
     });
+    if (!id) return;
     for (let elm of answer.answers) {
       const {
         idQuestion,

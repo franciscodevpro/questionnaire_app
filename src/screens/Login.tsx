@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Image, StyleSheet, View } from "react-native";
+import { Alert, Image, StyleSheet, View } from "react-native";
 import Button from "../components/Button";
 import Input from "../components/InputLabel";
 import { SelectInput } from "../components/Select-input";
 import { getAppliers } from "../repositories/appliers";
+import { validadePin } from "../repositories/pins";
 
 type LoginProps = {
   onLogin: (authData: {
@@ -16,7 +17,7 @@ export const Login = (props: LoginProps) => {
   const [disabled, setDisabled] = useState(true);
   const [pin, setPin] = useState<string | null>(null);
   const [applier, setApplier] = useState<{ name: string; id: string }>(null);
-  const [data, setData] = useState<{ key: string; value: string }[]>(null);
+  const [data, setData] = useState<{ key: string; value: string }[]>([]);
 
   useEffect(() => {
     fetchAppliers();
@@ -45,8 +46,11 @@ export const Login = (props: LoginProps) => {
     setDisabled(true);
   };
 
-  const handleLogin = () => {
-    props.onLogin({ pin, applier });
+  const handleLogin = async () => {
+    const isValid = await validadePin(pin);
+    if (isValid) return props.onLogin({ pin, applier });
+
+    Alert.alert("Pin informado não é válido!");
   };
 
   return (

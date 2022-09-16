@@ -1,3 +1,4 @@
+import { Alert } from "react-native";
 import { QuestionnaireDataEntity } from "../entities/questionnaire-data.type";
 import api from "./api";
 
@@ -19,5 +20,10 @@ export const saveQuestionnaireData = async (
     { applierId, pin },
     () => unauthorizad()
   );
+  if (!result?.data?.id)
+    Alert.alert(
+      "Erro ao tentar syncrinizar",
+      "Confira sua conexão com a internet e tente novamente"
+    );
   return result?.data || {};
 };

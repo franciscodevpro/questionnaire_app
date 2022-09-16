@@ -3,6 +3,7 @@ import { AnswerEntity } from "../entities/answer.type";
 import { QuestionnaireDataEntity } from "../entities/questionnaire-data.type";
 import api from "./api";
 import uuid from "react-native-uuid";
+import { Alert } from "react-native";
 
 export const saveLocalAnswers = async (
   questionnaireData: QuestionnaireDataEntity & {
@@ -104,5 +105,10 @@ export const saveAnswers = async (
     { applierId, pin },
     () => unauthorizad()
   );
+  if (!result?.data?.id)
+    Alert.alert(
+      "Erro ao tentar syncrinizar",
+      "Confira sua conexão com a internet e tente novamente"
+    );
   return result?.data || {};
 };

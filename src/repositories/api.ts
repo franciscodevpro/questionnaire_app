@@ -4,6 +4,7 @@ import { Buffer } from "buffer";
 
 export const axiosClient = axios.create({
   baseURL: "http://192.168.18.13:3000/api",
+  timeout: 10000,
 });
 
 type audioResult = {
@@ -20,7 +21,10 @@ export default {
     unauthorized?: () => void
   ) => {
     try {
-      return await axiosClient.get(url, basicAuthorization(basicAuth));
+      return await axiosClient.get(url, {
+        ...basicAuthorization(basicAuth),
+        timeout: 1000,
+      });
     } catch (err) {
       if (/.+401$/i.test(err.message)) {
         unauthorized?.();
