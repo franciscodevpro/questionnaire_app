@@ -7,6 +7,7 @@ const MainContext = createContext<{
   questionnaireUnsaved: { [key: string]: number };
   syncData: () => Promise<void>;
   updateAnswers: () => Promise<void>;
+  coordinates: [string, string];
 }>(null);
 
 export const MainContextProvider = MainContext.Provider;

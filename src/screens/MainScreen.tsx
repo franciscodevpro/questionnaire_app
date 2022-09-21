@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
-import { View, StyleSheet } from "react-native";
+import * as Location from "expo-location";
+import { View, StyleSheet, Alert, Platform } from "react-native";
 import Header from "../components/Header";
 import MainMenu from "../components/MainMenu";
 import QuestionnansEndAlert from "../components/QuestionnansEndAlert";
@@ -31,11 +32,15 @@ const MainScreen = (props: MainScreenProps) => {
     [key: string]: number;
   }>({});
   const [allUnsaved, setAllUnsaved] = useState<number>(0);
+  const [coordinates, setCoordinates] = useState<[string, string]>(["", ""]);
 
   useEffect(() => {
     fetchQuestionnaires();
     updateAnswers();
   }, []);
+  useEffect(() => {
+    getCurrentPosition();
+  }, [coordinates]);
 
   const updateAnswers = async (): Promise<void> => {
     const answers = await getLocalAnswers(applier.id);
@@ -47,6 +52,38 @@ const MainScreen = (props: MainScreenProps) => {
     });
     setAllUnsaved(answers.length);
     setquestionnaireUnsaved(unsyncData);
+  };
+
+  const getLocation = async () => {
+    try {
+      const position = await Location.getCurrentPositionAsync({ accuracy: 3 });
+      Alert.alert("Dados", JSON.stringify(position, null, 1));
+      console.log(position);
+      const newCoordinates: [string, string] = [
+        JSON.stringify(position.coords.latitude),
+        JSON.stringify(position.coords.longitude),
+      ];
+      if (
+        newCoordinates[0] !== coordinates[0] ||
+        newCoordinates[1] !== coordinates[1]
+      )
+        setCoordinates(newCoordinates);
+    } catch (err) {
+      Alert.alert(JSON.stringify({ err }, null, 1));
+    }
+  };
+  const getCurrentPosition = async (): Promise<void> => {
+    if (Platform.OS === "ios") {
+      await getLocation();
+    } else {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      Alert.alert(JSON.stringify(status, null, 1));
+      if (status === "granted") {
+        await getLocation();
+      } else {
+        alert("Permissão de localização negada");
+      }
+    }
   };
 
   const fetchQuestionnaires = async () => {
@@ -75,6 +112,7 @@ const MainScreen = (props: MainScreenProps) => {
           await updateAnswers();
         },
         updateAnswers: async () => await updateAnswers(),
+        coordinates: ["", ""],
       }}
     >
       <View style={{ flex: 1, position: "relative", flexDirection: "column" }}>

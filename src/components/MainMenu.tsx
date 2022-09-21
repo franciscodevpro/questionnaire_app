@@ -1,5 +1,11 @@
-import React, { useContext, useEffect, useState } from "react";
-import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Text,
+  Animated,
+} from "react-native";
 import Icon from "react-native-vector-icons/Feather";
 import MainContext from "../contexts/MainContext";
 import Button from "./Button";
@@ -13,19 +19,43 @@ interface MainMenuProps {
 }
 
 const MainMenu = (props: MainMenuProps) => {
+  const fadeAnim = useRef(new Animated.Value(-300)).current;
   const { allUnsaved, updateAnswers, syncData } = useContext(MainContext);
+  const [isClosingMenu, setIsClosingMenu] = useState(false);
+  useEffect(() => {
+    if (props.isActive) return fadeIn();
+    fadeOut();
+  }, [props.isActive]);
+
+  const fadeIn = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 500,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const fadeOut = () => {
+    setIsClosingMenu(true);
+    Animated.timing(fadeAnim, {
+      toValue: -300,
+      duration: 300,
+      useNativeDriver: false,
+    }).start(() => setIsClosingMenu(false));
+  };
+
   return (
     <>
       <View
         style={{
           ...styles.mainMenuBackground,
-          ...(!props.isActive && { display: "none" }),
+          ...(!props.isActive && !isClosingMenu && { display: "none" }),
         }}
       />
-      <View
+      <Animated.View
         style={{
           ...styles.mainMenu,
-          ...(!props.isActive && { left: "-100%" }),
+          left: fadeAnim,
         }}
       >
         <View style={styles.mainMenuHeader}>
@@ -62,7 +92,7 @@ const MainMenu = (props: MainMenuProps) => {
             onPress={() => props.onChangeApplier()}
           />
         </View>
-      </View>
+      </Animated.View>
     </>
   );
 };

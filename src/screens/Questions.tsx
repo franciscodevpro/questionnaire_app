@@ -1,5 +1,4 @@
 import React, { useContext, useEffect, useState } from "react";
-import * as Location from "expo-location";
 import { Audio } from "expo-av";
 import {
   Text,
@@ -8,7 +7,6 @@ import {
   ViewProps,
   TouchableOpacity,
   ScrollView,
-  Platform,
   Alert,
 } from "react-native";
 import Icon from "react-native-vector-icons/Feather";
@@ -29,26 +27,20 @@ interface QuestionsProps extends ViewProps {
 
 const Questions = (props: QuestionsProps) => {
   const { applier, pin, logOut } = useContext(AuthContext);
-  const { updateAnswers } = useContext(MainContext);
+  const { updateAnswers, coordinates } = useContext(MainContext);
   const [questions, setQuestions] = useState<QuestionEntity[]>([]);
   const [answers, setAnswers] = useState<{
     [key: string]: AnswerEntity;
   }>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [canNext, setCanNext] = useState(false);
-  const [coordinates, setCoordinates] = useState<[string, string]>([
-    null,
-    null,
-  ]);
   const [audioPath, setAudioPath] = useState("");
+  const [audioRecord, setAudioRecord] = useState<Audio.Recording>(null);
 
   useEffect(() => {
     fetchQuestions();
     startRecording();
   }, []);
-  useEffect(() => {
-    getCurrentPosition();
-  }, [coordinates]);
 
   const startRecording = async () => {
     try {
@@ -60,44 +52,20 @@ const Questions = (props: QuestionsProps) => {
       const { recording } = await Audio.Recording.createAsync(
         Audio.RecordingOptionsPresets.HIGH_QUALITY
       );
+      setAudioRecord(recording);
       setTimeout(function () {
-        Alert.alert("Parando gravação.");
-        stopRecording(recording);
-      }, 5000);
+        stopRecording();
+      }, 60000);
     } catch (err) {
       console.error("Failed to start recording", err);
     }
   };
 
-  const stopRecording = async (recordingObj: Audio.Recording) => {
-    await recordingObj.stopAndUnloadAsync();
-    //const { sound } = await recordingObj.createNewLoadedSoundAsync();
-    setAudioPath(recordingObj._uri);
-  };
-
-  const getLocation = async () => {
-    const position = await Location.getCurrentPositionAsync({ accuracy: 3 });
-    const newCoordinates: [string, string] = [
-      JSON.stringify(position.coords.latitude),
-      JSON.stringify(position.coords.longitude),
-    ];
-    if (
-      newCoordinates[0] !== coordinates[0] ||
-      newCoordinates[1] !== coordinates[1]
-    )
-      setCoordinates(newCoordinates);
-  };
-  const getCurrentPosition = async (): Promise<void> => {
-    if (Platform.OS === "ios") {
-      await getLocation();
-    } else {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === "granted") {
-        await getLocation();
-      } else {
-        alert("Permissão de localização negada");
-      }
-    }
+  const stopRecording = async () => {
+    if (!audioRecord) return;
+    await audioRecord.stopAndUnloadAsync();
+    setAudioPath(audioRecord._uri);
+    setAudioRecord(null);
   };
 
   const fetchQuestions = async () => {
@@ -139,6 +107,7 @@ const Questions = (props: QuestionsProps) => {
       Object.values(answers)
     );
     await updateAnswers();
+    stopRecording();
     props.onQuestionnaireEnd();
   };
 
