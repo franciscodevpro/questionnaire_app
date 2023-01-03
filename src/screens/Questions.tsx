@@ -1,24 +1,23 @@
-import React, { useContext, useEffect, useState } from "react";
 import { Audio } from "expo-av";
+import React, { useContext, useEffect, useState } from "react";
 import {
-  Text,
-  View,
-  StyleSheet,
-  ViewProps,
-  TouchableOpacity,
   ScrollView,
-  Alert,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ViewProps,
 } from "react-native";
 import Icon from "react-native-vector-icons/Feather";
 import MultiAnswersQuestion from "../components/MultiAnswersQuestion";
 import OneAnswerQuestion from "../components/OneAnswerQuestion";
 import SubjectiveAnswerQuestion from "../components/SubjectiveAnswerQuestion";
 import AuthContext from "../contexts/AuthContext";
-import { QuestionEntity } from "../entities/question.type";
-import { getQuestions } from "../repositories/questions";
-import { AnswerEntity } from "../entities/answer.type";
-import { saveLocalAnswers } from "../repositories/answers";
 import MainContext from "../contexts/MainContext";
+import { AnswerEntity } from "../entities/answer.type";
+import { QuestionEntity } from "../entities/question.type";
+import { saveLocalAnswers } from "../repositories/answers";
+import { getQuestions } from "../repositories/questions";
 
 interface QuestionsProps extends ViewProps {
   idQuestionnaire: string;
@@ -36,11 +35,21 @@ const Questions = (props: QuestionsProps) => {
   const [canNext, setCanNext] = useState(false);
   const [audioPath, setAudioPath] = useState("");
   const [audioRecord, setAudioRecord] = useState<Audio.Recording>(null);
+  const [startEndTime, setStartEndTime] = useState<[number, number]>([0, 0]);
 
   useEffect(() => {
     fetchQuestions();
+    startTimeCount();
     startRecording();
   }, []);
+
+  const startTimeCount = async () => {
+    setStartEndTime([Date.now(), 0]);
+  };
+
+  const stopTimeCounting = async () => {
+    setStartEndTime([startEndTime[0], Date.now()]);
+  };
 
   const startRecording = async () => {
     try {
@@ -94,13 +103,14 @@ const Questions = (props: QuestionsProps) => {
   };
 
   const finishQuestionnaire = async () => {
+    stopTimeCounting();
     await saveLocalAnswers(
       {
         idQuestionnaire: props.idQuestionnaire,
         audioPath: audioPath,
         lat: coordinates[0],
         lon: coordinates[1],
-        duration: 0,
+        duration: startEndTime[1] - startEndTime[0] || 0,
         pin,
         applierId: applier.id,
       },
@@ -113,7 +123,7 @@ const Questions = (props: QuestionsProps) => {
 
   const returnCorrectQuestionType = (question: QuestionEntity) => {
     const { id, type } = question;
-    if (question && type === "1")
+    if (question && (type === "1" || type === ""))
       return (
         <OneAnswerQuestion
           question={question}
