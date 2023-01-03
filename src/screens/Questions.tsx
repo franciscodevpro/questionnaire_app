@@ -35,7 +35,7 @@ const Questions = (props: QuestionsProps) => {
   const [canNext, setCanNext] = useState(false);
   const [audioPath, setAudioPath] = useState("");
   const [audioRecord, setAudioRecord] = useState<Audio.Recording>(null);
-  const [startEndTime, setStartEndTime] = useState<[number, number]>([0, 0]);
+  const [startTime, setStartTime] = useState<number>(0);
 
   useEffect(() => {
     fetchQuestions();
@@ -44,11 +44,7 @@ const Questions = (props: QuestionsProps) => {
   }, []);
 
   const startTimeCount = async () => {
-    setStartEndTime([Date.now(), 0]);
-  };
-
-  const stopTimeCounting = async () => {
-    setStartEndTime([startEndTime[0], Date.now()]);
+    setStartTime(Date.now());
   };
 
   const startRecording = async () => {
@@ -103,14 +99,15 @@ const Questions = (props: QuestionsProps) => {
   };
 
   const finishQuestionnaire = async () => {
-    stopTimeCounting();
+    const stopTime = Date.now();
+    console.log({ start: startTime, stop: stopTime });
     await saveLocalAnswers(
       {
         idQuestionnaire: props.idQuestionnaire,
         audioPath: audioPath,
         lat: coordinates[0],
         lon: coordinates[1],
-        duration: startEndTime[1] - startEndTime[0] || 0,
+        duration: stopTime - startTime || 0,
         pin,
         applierId: applier.id,
       },
