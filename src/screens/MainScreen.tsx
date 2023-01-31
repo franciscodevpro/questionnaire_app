@@ -1,17 +1,17 @@
-import React, { useContext, useEffect, useState } from "react";
 import * as Location from "expo-location";
-import { View, StyleSheet, Alert, Platform } from "react-native";
+import React, { useContext, useEffect, useState } from "react";
+import { Alert, Platform, StyleSheet, View } from "react-native";
 import Header from "../components/Header";
 import MainMenu from "../components/MainMenu";
 import QuestionnansEndAlert from "../components/QuestionnansEndAlert";
-import { Questionnaires } from "./Questionnaires";
-import Questions from "./Questions";
 import AuthContext from "../contexts/AuthContext";
-import { synchronizeData } from "../repositories/syncData";
 import { MainContextProvider } from "../contexts/MainContext";
 import { QuestionnaireEntity } from "../entities/questionnaire.type";
-import { getQuestionnaires } from "../repositories/questionnaires";
 import { getLocalAnswers } from "../repositories/answers";
+import { getQuestionnaires } from "../repositories/questionnaires";
+import { synchronizeData } from "../repositories/syncData";
+import { Questionnaires } from "./Questionnaires";
+import Questions from "./Questions";
 
 interface MainScreenProps {
   onLogout: () => void;
@@ -112,7 +112,7 @@ const MainScreen = (props: MainScreenProps) => {
           await updateAnswers();
         },
         updateAnswers: async () => await updateAnswers(),
-        coordinates: ["", ""],
+        coordinates,
       }}
     >
       <View style={{ flex: 1, position: "relative", flexDirection: "column" }}>

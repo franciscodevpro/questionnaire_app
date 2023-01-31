@@ -1,9 +1,15 @@
 import axios from "axios";
-import * as FileSystem from "expo-file-system";
 import { Buffer } from "buffer";
+import * as FileSystem from "expo-file-system";
+
+const servers = {
+  api: "http://192.168.1.8:3000/api",
+  audioUpload: "http://192.168.1.8:3000/api/upload/audio",
+};
 
 export const axiosClient = axios.create({
-  baseURL: "http://192.168.18.13:3000/api",
+  //baseURL: "http://18.222.199.243:3000/api",
+  baseURL: servers.api,
   timeout: 10000,
 });
 
@@ -51,15 +57,11 @@ export default {
   },
   uploadAudio: async (uri: string): Promise<audioResult> => {
     try {
-      const response = await FileSystem.uploadAsync(
-        `http://192.168.18.13:3000/api/upload/audio`,
-        uri,
-        {
-          fieldName: "file",
-          httpMethod: "POST",
-          uploadType: FileSystem.FileSystemUploadType.MULTIPART,
-        } as any
-      );
+      const response = await FileSystem.uploadAsync(servers.audioUpload, uri, {
+        fieldName: "file",
+        httpMethod: "POST",
+        uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+      } as any);
       return JSON.parse(response.body) as audioResult;
     } catch (error) {
       console.log(error);

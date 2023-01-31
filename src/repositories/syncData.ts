@@ -28,13 +28,12 @@ export const synchronizeData = async (applierId: string) => {
       const uploadData = await api.uploadAudio(
         answer.questionnaireData?.audioPath
       );
-      answer.questionnaireData.audioPath = uploadData.path;
+      answer.questionnaireData.audioPath = uploadData?.path || "";
     }
     const { id } = await saveQuestionnaireData(answer.questionnaireData, {
       applierId: answer.questionnaireData.applierId,
       pin: answer.questionnaireData.pin,
     });
-    console.log({ id });
     if (!id) return;
     for (let elm of answer.answers) {
       const {

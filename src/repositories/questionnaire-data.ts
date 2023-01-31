@@ -3,7 +3,14 @@ import { QuestionnaireDataEntity } from "../entities/questionnaire-data.type";
 import api from "./api";
 
 export const saveQuestionnaireData = async (
-  { idQuestionnaire, audioPath, lat, lon, duration }: QuestionnaireDataEntity,
+  {
+    idQuestionnaire,
+    audioPath,
+    lat,
+    lon,
+    duration,
+    createdAt,
+  }: QuestionnaireDataEntity,
   {
     applierId,
     pin,
@@ -16,7 +23,7 @@ export const saveQuestionnaireData = async (
 ): Promise<QuestionnaireDataEntity & { id: string }> => {
   const result = await api.post(
     "/questionnaire_data?idQuestionnaire=" + idQuestionnaire,
-    { audioPath, lat, lon, duration },
+    { audioPath, lat, lon, duration, createdAt },
     { applierId, pin },
     () => unauthorizad()
   );

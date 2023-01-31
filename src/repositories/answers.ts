@@ -1,14 +1,15 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Alert } from "react-native";
+import uuid from "react-native-uuid";
 import { AnswerEntity } from "../entities/answer.type";
 import { QuestionnaireDataEntity } from "../entities/questionnaire-data.type";
 import api from "./api";
-import uuid from "react-native-uuid";
-import { Alert } from "react-native";
 
 export const saveLocalAnswers = async (
   questionnaireData: QuestionnaireDataEntity & {
     pin: string;
     applierId: string;
+    createdAt?: string;
   },
   answers: AnswerEntity[]
 ): Promise<void> => {
@@ -39,6 +40,7 @@ export const getLocalAnswers = async (
     questionnaireData: QuestionnaireDataEntity & {
       pin: string;
       applierId: string;
+      createdAt?: string;
     };
     answers: AnswerEntity[];
   }[]

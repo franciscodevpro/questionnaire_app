@@ -24,6 +24,8 @@ interface QuestionsProps extends ViewProps {
   onQuestionnaireEnd: () => void;
 }
 
+let recordTimeout: undefined | NodeJS.Timeout;
+
 const Questions = (props: QuestionsProps) => {
   const { applier, pin, logOut } = useContext(AuthContext);
   const { updateAnswers, coordinates } = useContext(MainContext);
@@ -49,6 +51,7 @@ const Questions = (props: QuestionsProps) => {
 
   const startRecording = async () => {
     try {
+      console.log("Starting recording!");
       await Audio.requestPermissionsAsync();
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
@@ -57,20 +60,28 @@ const Questions = (props: QuestionsProps) => {
       const { recording } = await Audio.Recording.createAsync(
         Audio.RecordingOptionsPresets.HIGH_QUALITY
       );
+      console.log({ recording });
       setAudioRecord(recording);
-      setTimeout(function () {
-        stopRecording();
-      }, 60000);
+      console.log({ audioRecord });
+      recordTimeout = setTimeout(() => {
+        stopRecording(recording);
+      }, 5000);
     } catch (err) {
       console.error("Failed to start recording", err);
     }
   };
 
-  const stopRecording = async () => {
-    if (!audioRecord) return;
-    await audioRecord.stopAndUnloadAsync();
-    setAudioPath(audioRecord._uri);
+  const stopRecording = async (
+    audioRecording?: Audio.Recording
+  ): Promise<string> => {
+    console.log({ audioRecording, audioRecord });
+    if (!audioRecording) audioRecording = audioRecord;
+    if (!audioRecording) return audioPath;
+    await audioRecording.stopAndUnloadAsync();
+    setAudioPath(audioRecording._uri);
     setAudioRecord(null);
+    console.log("Stop recording");
+    return audioRecording._uri;
   };
 
   const fetchQuestions = async () => {
@@ -99,8 +110,21 @@ const Questions = (props: QuestionsProps) => {
   };
 
   const finishQuestionnaire = async () => {
+    const audioPath = await stopRecording(audioRecord);
+    console.log({ recordTimeout });
+    if (recordTimeout) clearTimeout(recordTimeout);
     const stopTime = Date.now();
     console.log({ start: startTime, stop: stopTime });
+    console.log({
+      idQuestionnaire: props.idQuestionnaire,
+      audioPath: audioPath,
+      lat: coordinates[0],
+      lon: coordinates[1],
+      duration: stopTime - startTime || 0,
+      pin,
+      applierId: applier.id,
+      createdAt: new Date().toISOString(),
+    });
     await saveLocalAnswers(
       {
         idQuestionnaire: props.idQuestionnaire,
@@ -110,11 +134,11 @@ const Questions = (props: QuestionsProps) => {
         duration: stopTime - startTime || 0,
         pin,
         applierId: applier.id,
+        createdAt: new Date().toISOString(),
       },
       Object.values(answers)
     );
     await updateAnswers();
-    stopRecording();
     props.onQuestionnaireEnd();
   };
 

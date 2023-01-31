@@ -4,4 +4,5 @@ export type QuestionnaireDataEntity = {
   lat: string;
   lon: string;
   duration: number;
+  createdAt?: string;
 };
