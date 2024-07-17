@@ -53,7 +53,7 @@ export const getLocalAnswers = async (
 
 export const removeLocalAnswersByRegId = async (
   applierId: string,
-  regId: string
+  regId: string | string[]
 ): Promise<void> => {
   const currentData: {
     regId: string;
@@ -66,9 +66,11 @@ export const removeLocalAnswersByRegId = async (
     JSON.parse(
       await AsyncStorage.getItem(`@questionnaire:answers:${applierId}`)
     ) || [];
+    if(!Array.isArray(regId))
+    regId = [regId]
   await AsyncStorage.setItem(
     `@questionnaire:answers:${applierId}`,
-    JSON.stringify(currentData.filter((elm) => elm.regId !== regId))
+    JSON.stringify(currentData.filter((elm) => regId.includes(elm.regId)))
   );
 };
 
