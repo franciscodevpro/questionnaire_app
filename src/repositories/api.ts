@@ -1,6 +1,9 @@
 import axios from "axios";
 import { Buffer } from "buffer";
 import * as FileSystem from "expo-file-system";
+import fs from "fs";
+import path from "path";
+const AWS = require("aws-sdk");
 
 const servers = {
   api: "http://192.168.1.8:3000/api",
@@ -12,6 +15,23 @@ export const axiosClient = axios.create({
   baseURL: servers.api,
   timeout: 10000,
 });
+
+const USE_S3_UPLOAD = false;
+const AWS_REGION = null;
+const AWS_CREDENTIALS_ACCESSKEYID = null;
+const AWS_CREDENTIALS_SECRETACCESSKEY = null;
+const AWS_APIVERSION = null;
+const AWS_S3_BUCKETNAME = null;
+const AWS_S3_ACL = null;
+
+AWS.config.update({
+  region: AWS_REGION,
+  credentials: {
+    accessKeyId: AWS_CREDENTIALS_ACCESSKEYID,
+    secretAccessKey: AWS_CREDENTIALS_SECRETACCESSKEY,
+  },
+});
+var s3 = new AWS.S3({ apiVersion: AWS_APIVERSION });
 
 type audioResult = {
   mimetype: string;
@@ -55,8 +75,37 @@ export default {
       }
     }
   },
-  uploadAudio: async (uri: string): Promise<audioResult> => {
+
+  uploadToS3: (uri: string) => {
+    const bucketName = AWS_S3_BUCKETNAME;
+    var fileStream = fs.createReadStream(uri);
+    fileStream.on("error", function (err) {
+      console.log("File Error", err);
+    });
+    const uploadParams = {
+      Bucket: bucketName,
+      Key: path.basename(Date.now().toString()),
+      Body: fileStream,
+      ACL: AWS_S3_ACL,
+    };
+    console.log(uploadParams);
+    // call S3 to retrieve upload file to specified bucket
+    s3.upload(uploadParams, function (err, data) {
+      if (err) {
+        console.log("Error", err);
+      }
+      if (data) {
+        console.log("Upload Success", data.Location);
+      }
+    });
+  },
+  uploadAudio: async function (uri: string): Promise<audioResult | null> {
     try {
+      if (USE_S3_UPLOAD) {
+        this.uploadToS3(uri);
+        return null;
+      }
+
       const response = await FileSystem.uploadAsync(servers.audioUpload, uri, {
         fieldName: "file",
         httpMethod: "POST",
@@ -66,6 +115,11 @@ export default {
     } catch (error) {
       console.log(error);
     }
+  },
+  uploadMultipleAudio: async function (
+    uris: string[]
+  ): Promise<(audioResult | null)[]> {
+    return Promise.all(uris.map((elm) => this.uploadAudio(elm)));
   },
 };
 
