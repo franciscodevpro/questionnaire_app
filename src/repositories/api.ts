@@ -16,13 +16,15 @@ export const axiosClient = axios.create({
   timeout: 10000,
 });
 
-const USE_S3_UPLOAD = false;
-const AWS_REGION = null;
-const AWS_CREDENTIALS_ACCESSKEYID = null;
-const AWS_CREDENTIALS_SECRETACCESSKEY = null;
-const AWS_APIVERSION = null;
-const AWS_S3_BUCKETNAME = null;
-const AWS_S3_ACL = null;
+const USE_S3_UPLOAD = process.env?.EXPO_PUBLIC_USE_S3_UPLOAD || false;
+const AWS_REGION = process.env?.EXPO_PUBLIC_AWS_REGION || null;
+const AWS_CREDENTIALS_ACCESSKEYID =
+  process.env?.EXPO_PUBLIC_AWS_CREDENTIALS_ACCESSKEYID || null;
+const AWS_CREDENTIALS_SECRETACCESSKEY =
+  process.env?.EXPO_PUBLIC_AWS_CREDENTIALS_SECRETACCESSKEY || null;
+const AWS_APIVERSION = process.env?.EXPO_PUBLIC_AWS_APIVERSION || null;
+const AWS_S3_BUCKETNAME = process.env?.EXPO_PUBLIC_AWS_S3_BUCKETNAME || null;
+const AWS_S3_ACL = process.env?.EXPO_PUBLIC_AWS_S3_ACL || null;
 
 AWS.config.update({
   region: AWS_REGION,
